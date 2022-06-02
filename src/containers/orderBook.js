@@ -7,7 +7,7 @@ import { WebSocketContext } from '../WebSocket';
 import { addOrder } from '../features/orderbook/orderBookSlice';
 
 const OrderBook = () => {
-    const { orders } = useSelector((state) => state.orderbook)
+    const { sellOrders, buyOrders } = useSelector((state) => state.orderbook)
     const dispatch = useDispatch();
     const [channel, setChannel] = useState(null);
     const [precision, setPrecision] = useState('P0');
@@ -81,8 +81,9 @@ const OrderBook = () => {
                 </label>
             </form>
             <Collapsible title="orderbook">
-                <div>
-                    <Book orders={orders} />
+                <div style={{display: 'flex'}}>
+                    <Book orders={buyOrders} />
+                    <Book orders={sellOrders} />
                 </div>
             </Collapsible>
         </>

@@ -3,7 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 export const orderBookSlice = createSlice({
     name: 'orderbook',
     initialState: {
-        orders: []
+        sellOrders: [],
+        buyOrders: [],
     },
     reducers: {
         addOrder: (state, action) => {
@@ -16,7 +17,15 @@ export const orderBookSlice = createSlice({
                         count: ord[1],
                         amount: ord[2]
                     }
-                    state.orders.push(order)
+
+                    if (order.amount > 0) {
+                        // add to sellorder
+                        state.sellOrders.push(order)
+                    } else {
+                        state.buyOrders.push(order)
+                    }
+
+                    return ord;
                 })
             } else {
                 // single order
@@ -26,11 +35,18 @@ export const orderBookSlice = createSlice({
                     count: action.payload[1][1],
                     amount: action.payload[1][2]
                 }
-                state.orders.push(order)
+
+                if (order.amount > 0) {
+                    // add to sellorder
+                    state.sellOrders.push(order)
+                } else {
+                    state.buyOrders.push(order)
+                }
             }
 
             // cleanup to not overload memory
-            state.orders = state.orders.slice(-20)
+            state.sellOrders = state.sellOrders.slice(-20)
+            state.buyOrders = state.buyOrders.slice(-20)
         },
     },
 })
