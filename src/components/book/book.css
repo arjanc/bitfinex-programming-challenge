@@ -1,0 +1,17 @@
+.book {
+   flex: 1 1;
+}
+
+.book .bookHeader {
+   display: flex;
+   grid-gap: 2px;
+   text-transform: uppercase;
+   flex-direction: row;
+   justify-content: space-between;
+}
+
+.book .bookRow {
+   display: flex;
+   justify-content: space-between;
+   height: 17px;
+}
