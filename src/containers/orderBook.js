@@ -1,4 +1,4 @@
-import React, {useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import Collapsible from '../components/collapsible/collapsible';
@@ -9,6 +9,7 @@ import { addOrder } from '../features/orderbook/orderBookSlice';
 const OrderBook = () => {
     const { orders } = useSelector((state) => state.orderbook)
     const dispatch = useDispatch();
+    const [channel, setChannel] = useState(null);
 
     const ws = useContext(WebSocketContext);
 
@@ -27,13 +28,18 @@ const OrderBook = () => {
 
         ws.socket.onmessage = evt => {
             const payload = JSON.parse(evt.data);
-            // note: I'am not fully aware of the data structure of the order book right now.
-            if (payload && payload[1] && payload.event === undefined) {
+
+            if (payload.event === 'subscribed') {
+                setChannel(payload.chanId)
+            }
+
+            if (channel && payload[0] === channel) {
+                // note: I'am not fully aware of the data structure of the order book right now.
                 dispatch(addOrder(payload))
             }
 
         }
-    }, [dispatch, ws]);
+    }, [dispatch, ws, channel, setChannel]);
 
     return (
         <Collapsible title="orderbook">

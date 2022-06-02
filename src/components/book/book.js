@@ -16,10 +16,10 @@ const Book = ({ orders }) => {
                     if (order) {
                         return (
                             <div className="bookRow" key={`order-${index}`}>
-                                <div style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>{order[1][1]}</div>
-                                <div style={{minWidth: '25%', textAlign: 'right'}}>{order[1][0]}</div>
-                                <div style={{width: '65px', minWidth: '65px', maxWidth: '65px',textAlign: 'right' }}>{order[1][2]}</div>
-                                <div style={{minWidth: '25%', textAlign: 'right'}}>{order[0]}</div>
+                                <div style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>{order.count}</div>
+                                <div style={{minWidth: '25%', textAlign: 'right'}}>{order.amount}</div>
+                                <div style={{width: '65px', minWidth: '65px', maxWidth: '65px',textAlign: 'right' }}>{order.price * order.amount}</div>
+                                <div style={{minWidth: '25%', textAlign: 'right'}}>{order.price}</div>
                             </div>
                         )
                     } else {
