@@ -10,6 +10,7 @@ const OrderBook = () => {
     const { orders } = useSelector((state) => state.orderbook)
     const dispatch = useDispatch();
     const [channel, setChannel] = useState(null);
+    const [precision, setPrecision] = useState('P0');
 
     const ws = useContext(WebSocketContext);
 
@@ -19,7 +20,7 @@ const OrderBook = () => {
                 event: 'subscribe',
                 channel: 'book',
                 symbol: 'tBTCUSD',
-                prec: 'P0',
+                prec: precision,
                 freq: 'F0',
                 len: '25',
             })
@@ -33,20 +34,58 @@ const OrderBook = () => {
                 setChannel(payload.chanId)
             }
 
-            if (channel && payload[0] === channel) {
-                // note: I'am not fully aware of the data structure of the order book right now.
-                dispatch(addOrder(payload))
+
+            if (payload.event) {
+                console.log('event: ', payload.event, ' / ', payload);
             }
 
+            if (channel && payload[0] === channel) {
+                dispatch(addOrder(payload))
+            }
         }
-    }, [dispatch, ws, channel, setChannel]);
+    }, [dispatch, ws, channel, setChannel, precision]);
+
+    useEffect(() => {
+        if (ws.socket.readyState >= 1) {
+            // first unsubscribe to existing channel
+            const unsubscribe = JSON.stringify({
+                event: 'unsubscribe',
+                chanId: channel,
+            })
+            ws.socket.send(unsubscribe);
+
+            // subscribe to channel with different precision
+            const msg = JSON.stringify({
+                event: 'subscribe',
+                channel: 'book',
+                symbol: 'tBTCUSD',
+                prec: precision,
+                freq: 'F0',
+                len: '25',
+            })
+            ws.socket.send(msg);
+        }
+
+    }, [precision])
 
     return (
-        <Collapsible title="orderbook">
-            <div>
-                <Book orders={orders} />
-            </div>
-        </Collapsible>
+        <>
+            <form>
+                <label>Change precision
+                <select id='precision' onChange={(evt) => setPrecision(evt.target.value)}>
+                    <option value='P0'>P0</option>
+                    <option value='P1'>P1</option>
+                    <option value='P2'>P2</option>
+                    <option value='P3'>P3</option>
+                </select>
+                </label>
+            </form>
+            <Collapsible title="orderbook">
+                <div>
+                    <Book orders={orders} />
+                </div>
+            </Collapsible>
+        </>
     )
 }
 
