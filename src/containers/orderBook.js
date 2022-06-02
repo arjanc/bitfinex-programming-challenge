@@ -83,7 +83,7 @@ const OrderBook = () => {
             <Collapsible title="orderbook">
                 <div style={{display: 'flex'}}>
                     <Book orders={buyOrders} />
-                    <Book orders={sellOrders} />
+                    <Book orders={sellOrders} alignment="right" />
                 </div>
             </Collapsible>
         </>
