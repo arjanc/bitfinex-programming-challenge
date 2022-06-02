@@ -34,11 +34,6 @@ const OrderBook = () => {
                 setChannel(payload.chanId)
             }
 
-
-            if (payload.event) {
-                console.log('event: ', payload.event, ' / ', payload);
-            }
-
             if (channel && payload[0] === channel) {
                 dispatch(addOrder(payload))
             }
