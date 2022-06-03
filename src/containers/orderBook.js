@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import Collapsible from '../components/collapsible/collapsible';
@@ -11,37 +11,51 @@ const OrderBook = () => {
     const dispatch = useDispatch();
     const [channel, setChannel] = useState(null);
     const [precision, setPrecision] = useState('P0');
+    const initialized = useRef(false);
+    const websocketState = useRef(null);
 
     const ws = useContext(WebSocketContext);
 
     useEffect(() => {
-        ws.socket.onopen = () => {
-            const msg = JSON.stringify({
-                event: 'subscribe',
-                channel: 'book',
-                symbol: 'tBTCUSD',
-                prec: precision,
-                freq: 'F0',
-                len: '25',
-            })
-            ws.socket.send(msg);
-        }
-
-        ws.socket.onmessage = evt => {
-            const payload = JSON.parse(evt.data);
-
-            if (payload.event === 'subscribed') {
-                setChannel(payload.chanId)
+        if (!initialized.current) {
+            ws.socket.onopen = () => {
+                const msg = JSON.stringify({
+                    event: 'subscribe',
+                    channel: 'book',
+                    symbol: 'tBTCUSD',
+                    prec: precision,
+                    freq: 'F0',
+                    len: '25',
+                })
+                ws.socket.send(msg);
             }
 
-            if (channel && payload[0] === channel) {
-                dispatch(addOrder(payload))
-            }
+            initialized.current = true;
         }
-    }, [dispatch, ws, channel, setChannel, precision]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialized]);
 
     useEffect(() => {
-        if (ws.socket.readyState >= 1) {
+        if (websocketState.current !== ws.socket.readyState && ws.socket.readyState === 0) {
+            websocketState.current = ws.socket.readyState
+            ws.socket.onmessage = ({ data }) => {
+                const payload = JSON.parse(data);
+
+                if (payload.event === 'subscribed') {
+                    setChannel(payload.chanId)
+                }
+
+                if (typeof payload[0] === 'number') {
+                    dispatch(addOrder(payload))
+                }
+            }
+        }
+    }, [ws, websocketState, setChannel, dispatch])
+
+    const handlePrecisionChange = (event) => {
+        const newPrecision = event.target.value;
+
+        if (ws.socket.readyState >= 1 && precision !== newPrecision) {
             // first unsubscribe to existing channel
             const unsubscribe = JSON.stringify({
                 event: 'unsubscribe',
@@ -54,20 +68,21 @@ const OrderBook = () => {
                 event: 'subscribe',
                 channel: 'book',
                 symbol: 'tBTCUSD',
-                prec: precision,
+                prec: newPrecision,
                 freq: 'F0',
                 len: '25',
             })
             ws.socket.send(msg);
         }
 
-    }, [precision])
+        setPrecision(newPrecision)
+    }
 
     return (
         <>
             <form>
                 <label>Change precision
-                <select id='precision' onChange={(evt) => setPrecision(evt.target.value)}>
+                <select id='precision' onChange={handlePrecisionChange}>
                     <option value='P0'>P0</option>
                     <option value='P1'>P1</option>
                     <option value='P2'>P2</option>
@@ -84,5 +99,4 @@ const OrderBook = () => {
         </>
     )
 }
-
 export default OrderBook;

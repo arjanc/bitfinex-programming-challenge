@@ -51,7 +51,7 @@ export const orderBookSlice = createSlice({
             // cleanup to not overload memory
             state.sellOrders = state.sellOrders.slice(-20);
             state.buyOrders = state.buyOrders.slice(-20);
-        },
+        }
     },
 })
 
